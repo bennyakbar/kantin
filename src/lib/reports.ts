@@ -148,4 +148,44 @@ export async function getSalesTrend(days: number = 7): Promise<{ date: string; o
     }
 
     return result
+    return result
+}
+
+export async function getTopCategories(startDate: string, endDate: string): Promise<{ name: string; value: number }[]> {
+    const supabase = await createClient()
+
+    const { data: details } = await supabase
+        .from('detail_penjualan')
+        .select(`subtotal, barang:barang_id(kategori)`)
+        .gte('created_at', `${startDate}T00:00:00`)
+        .lte('created_at', `${endDate}T23:59:59`)
+
+    const categoryMap = new Map<string, number>()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    details?.forEach((d: any) => {
+        const category = d.barang?.kategori || 'lainnya'
+        const current = categoryMap.get(category) || 0
+        categoryMap.set(category, current + d.subtotal)
+    })
+
+    const result = Array.from(categoryMap.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5) // Top 5
+
+    return result
+}
+
+export async function getLowStockItems(limit: number = 5): Promise<{ nama_barang: string; stok: number }[]> {
+    const supabase = await createClient()
+
+    const { data } = await supabase
+        .from('barang')
+        .select('nama_barang, stok')
+        .lt('stok', 5) // Alert threshold
+        .order('stok', { ascending: true })
+        .limit(limit)
+
+    return data || []
 }
