@@ -4,15 +4,48 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createBarang, updateBarang } from './actions'
 import { Barang, KategoriRow, SATUAN_OPTIONS } from '@/types'
+import { addKategori } from '../kategori/actions'
 
 export function BarangForm({ barang, categories }: { barang?: Barang, categories: KategoriRow[] }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
+    // Inline Category Creation State
+    const [isAddingCategory, setIsAddingCategory] = useState(false)
+    const [newCategoryName, setNewCategoryName] = useState('')
+    const [categoryList, setCategoryList] = useState(categories)
+    const [selectedCategory, setSelectedCategory] = useState(barang?.kategori || (categories[0]?.nama || ''))
+
+    async function handleAddCategory() {
+        if (!newCategoryName.trim()) return
+
+        setLoading(true)
+        try {
+            await addKategori(newCategoryName.trim().toLowerCase())
+            // Optimistically update list or re-fetch? 
+            // Since addKategori revalidates path, we might need to refresh router but for instant UI feedback:
+            const newCat = { id: 'temp-' + Date.now(), nama: newCategoryName.trim().toLowerCase(), created_at: new Date().toISOString() }
+            setCategoryList(prev => [...prev, newCat].sort((a, b) => a.nama.localeCompare(b.nama)))
+            setSelectedCategory(newCat.nama)
+            setIsAddingCategory(false)
+            setNewCategoryName('')
+        } catch (e) {
+            setError('Gagal menambah kategori: ' + (e as Error).message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     async function handleSubmit(formData: FormData) {
         setLoading(true)
         setError('')
+
+        // Ensure the selected category is used in formData if we are in adding mode or just to be safe
+        // (The select/input might handle it but let's be explicit)
+        // Actually, if we use controlled input for select, we need to make sure formData picks it up.
+        // It does pick up 'name="kategori"' from the DOM element.
+
         try {
             if (barang) { await updateBarang(barang.id, formData) }
             else { await createBarang(formData) }
@@ -33,13 +66,57 @@ export function BarangForm({ barang, categories }: { barang?: Barang, categories
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label className="block text-gray-700 mb-2">Kategori</label>
-                    <select name="kategori" defaultValue={barang?.kategori || (categories[0]?.nama || '')} className="w-full p-3 border border-gray-300 rounded text-gray-900 bg-white">
-                        {categories.map(opt => (
-                            <option key={opt.id} value={opt.nama}>{opt.nama}</option>
-                        ))}
-                    </select>
+                <div className="relative">
+                    <label className="block text-gray-700 mb-2 flex justify-between items-center">
+                        Kategori
+                        {!isAddingCategory && (
+                            <button
+                                type="button"
+                                onClick={() => setIsAddingCategory(true)}
+                                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                            >
+                                + Baru
+                            </button>
+                        )}
+                    </label>
+
+                    {isAddingCategory ? (
+                        <div className="flex gap-2">
+                            <input
+                                value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                placeholder="Nama kategori..."
+                                className="w-full p-3 border border-gray-300 rounded text-gray-900 bg-white text-sm"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddCategory}
+                                disabled={!newCategoryName.trim() || loading}
+                                className="bg-green-600 text-white px-3 rounded hover:bg-green-700 disabled:opacity-50"
+                            >
+                                ✓
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsAddingCategory(false)}
+                                className="bg-gray-300 text-gray-700 px-3 rounded hover:bg-gray-400"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ) : (
+                        <select
+                            name="kategori"
+                            value={selectedCategory}
+                            onChange={e => setSelectedCategory(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded text-gray-900 bg-white"
+                        >
+                            {categoryList.map(opt => (
+                                <option key={opt.id} value={opt.nama}>{opt.nama}</option>
+                            ))}
+                        </select>
+                    )}
                 </div>
                 <div>
                     <label className="block text-gray-700 mb-2">Satuan</label>
