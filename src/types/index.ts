@@ -8,13 +8,21 @@ export interface UserProfile {
     created_at: string
 }
 
-export type Kategori = 'makanan' | 'minuman' | 'snack'
+// Kategori is now dynamic, but we keep the string type for wider compatibility in frontend
+// until fully refactored. Ideally it should be just string.
+export type Kategori = string
 export type Satuan = 'pcs' | 'bungkus' | 'botol' | 'porsi' | 'cup' | 'kotak'
+
+export interface KategoriRow {
+    id: string
+    nama: string
+    created_at: string
+}
 
 export interface Barang {
     id: string
     nama_barang: string
-    kategori: Kategori
+    kategori: string // changed from specific union type to string
     satuan: Satuan
     harga_modal: number
     harga_jual: number
@@ -24,11 +32,8 @@ export interface Barang {
     updated_at: string
 }
 
-export const KATEGORI_OPTIONS: { value: Kategori; label: string }[] = [
-    { value: 'makanan', label: 'Makanan' },
-    { value: 'minuman', label: 'Minuman' },
-    { value: 'snack', label: 'Snack' },
-]
+// REMOVED KATEGORI_OPTIONS as they are now dynamic
+
 
 export const SATUAN_OPTIONS: { value: Satuan; label: string }[] = [
     { value: 'pcs', label: 'Pcs' },

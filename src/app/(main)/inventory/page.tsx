@@ -1,10 +1,11 @@
 import { requireAuth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import { KATEGORI_OPTIONS } from '@/types'
+import { getKategori } from '../kategori/actions'
 
 export default async function InventoryPage() {
     await requireAuth()
     const supabase = await createClient()
+    const categories = await getKategori()
 
     const { data: barangList } = await supabase
         .from('barang')
@@ -22,11 +23,12 @@ export default async function InventoryPage() {
     const lowStockItems = items.filter(b => b.stok <= 5 && b.status === 'aktif')
 
     // Group by kategori
-    const byKategori = KATEGORI_OPTIONS.map(k => ({
-        ...k,
-        items: items.filter(b => b.kategori === k.value),
-        totalStok: items.filter(b => b.kategori === k.value).reduce((sum, b) => sum + b.stok, 0),
-        nilaiJual: items.filter(b => b.kategori === k.value).reduce((sum, b) => sum + b.harga_jual * b.stok, 0),
+    const byKategori = categories.map(k => ({
+        label: k.nama,
+        value: k.nama,
+        items: items.filter(b => b.kategori === k.nama),
+        totalStok: items.filter(b => b.kategori === k.nama).reduce((sum, b) => sum + b.stok, 0),
+        nilaiJual: items.filter(b => b.kategori === k.nama).reduce((sum, b) => sum + b.harga_jual * b.stok, 0),
     }))
 
     return (

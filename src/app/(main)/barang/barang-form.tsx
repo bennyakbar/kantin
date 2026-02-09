@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createBarang, updateBarang } from './actions'
-import { Barang, KATEGORI_OPTIONS, SATUAN_OPTIONS } from '@/types'
+import { Barang, KategoriRow, SATUAN_OPTIONS } from '@/types'
 
-export function BarangForm({ barang }: { barang?: Barang }) {
+export function BarangForm({ barang, categories }: { barang?: Barang, categories: KategoriRow[] }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
@@ -35,9 +35,9 @@ export function BarangForm({ barang }: { barang?: Barang }) {
             <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label className="block text-gray-700 mb-2">Kategori</label>
-                    <select name="kategori" defaultValue={barang?.kategori || 'snack'} className="w-full p-3 border border-gray-300 rounded text-gray-900 bg-white">
-                        {KATEGORI_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <select name="kategori" defaultValue={barang?.kategori || (categories[0]?.nama || '')} className="w-full p-3 border border-gray-300 rounded text-gray-900 bg-white">
+                        {categories.map(opt => (
+                            <option key={opt.id} value={opt.nama}>{opt.nama}</option>
                         ))}
                     </select>
                 </div>

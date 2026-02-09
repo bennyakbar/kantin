@@ -1,11 +1,11 @@
 'use client'
 
-import { Barang, KATEGORI_OPTIONS } from '@/types'
+import { Barang, KategoriRow } from '@/types'
 import { toggleBarangStatus } from './actions'
 import Link from 'next/link'
 import { useState } from 'react'
 
-export function BarangTable({ barangList }: { barangList: Barang[] }) {
+export function BarangTable({ barangList, categories }: { barangList: Barang[], categories: KategoriRow[] }) {
     const [filter, setFilter] = useState('')
 
     const filtered = filter
@@ -14,10 +14,10 @@ export function BarangTable({ barangList }: { barangList: Barang[] }) {
 
     return (
         <div>
-            <div className="mb-4 flex gap-2">
+            <div className="mb-4 flex gap-2 flex-wrap">
                 <button onClick={() => setFilter('')} style={!filter ? { backgroundColor: '#353535' } : {}} className={`px-3 py-1 rounded transition ${!filter ? 'text-white' : 'bg-gray-200 text-gray-700'}`}>Semua</button>
-                {KATEGORI_OPTIONS.map(k => (
-                    <button key={k.value} onClick={() => setFilter(k.value)} style={filter === k.value ? { backgroundColor: '#353535' } : {}} className={`px-3 py-1 rounded transition ${filter === k.value ? 'text-white' : 'bg-gray-200 text-gray-700'}`}>{k.label}</button>
+                {categories.map(k => (
+                    <button key={k.id} onClick={() => setFilter(k.nama)} style={filter === k.nama ? { backgroundColor: '#353535' } : {}} className={`px-3 py-1 rounded transition ${filter === k.nama ? 'text-white' : 'bg-gray-200 text-gray-700'}`}>{k.nama}</button>
                 ))}
             </div>
 

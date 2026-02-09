@@ -12,12 +12,17 @@ interface BarangImport {
     stok: number
 }
 
+import { getKategori } from '../../kategori/actions'
+
 export async function importBarang(items: BarangImport[]) {
     const supabase = await createClient()
+    const categories = await getKategori()
+    const validCategoryNames = categories.map(c => c.nama)
+    const defaultCategory = validCategoryNames[0] || 'snack'
 
     const validItems = items.map(item => ({
         nama_barang: item.nama_barang,
-        kategori: ['makanan', 'minuman', 'snack'].includes(item.kategori) ? item.kategori : 'snack',
+        kategori: validCategoryNames.includes(item.kategori) ? item.kategori : defaultCategory,
         satuan: ['pcs', 'bungkus', 'botol', 'porsi', 'cup', 'kotak'].includes(item.satuan) ? item.satuan : 'pcs',
         harga_modal: Math.max(0, Number(item.harga_modal) || 0),
         harga_jual: Math.max(0, Number(item.harga_jual) || 0),

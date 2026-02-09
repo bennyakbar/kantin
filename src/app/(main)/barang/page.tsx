@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { Barang } from '@/types'
 import { BarangTable } from './barang-table'
 
+import { getKategori } from '../kategori/actions'
+
 export default async function BarangPage() {
     await requireRole(['canteen_keeper'])
     const supabase = await createClient()
+    const categories = await getKategori()
     const { data: barangList } = await supabase.from('barang').select('*').order('nama_barang')
 
     return (
@@ -18,7 +21,7 @@ export default async function BarangPage() {
                     <Link href="/barang/tambah" style={{ backgroundColor: '#353535' }} className="text-white px-4 py-2 rounded hover:opacity-80 transition">+ Tambah Barang</Link>
                 </div>
             </div>
-            <BarangTable barangList={barangList as Barang[] || []} />
+            <BarangTable barangList={barangList as Barang[] || []} categories={categories} />
         </div>
     )
 }

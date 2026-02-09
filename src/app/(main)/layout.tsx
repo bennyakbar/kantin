@@ -1,4 +1,4 @@
-import { requireAuth, isKeeper } from '@/lib/auth'
+import { requireAuth, isKeeper, isAdmin } from '@/lib/auth'
 import Link from 'next/link'
 
 export default async function MainLayout({
@@ -8,6 +8,7 @@ export default async function MainLayout({
 }) {
     const user = await requireAuth()
     const keeper = isKeeper(user.role)
+    const admin = isAdmin(user.role)
 
     return (
         <div className="min-h-screen bg-white">
@@ -60,6 +61,11 @@ export default async function MainLayout({
                         <Link href="/inventory" style={{ backgroundColor: '#353535' }} className="text-sm px-4 py-2 hover:opacity-80 text-white rounded-lg whitespace-nowrap font-medium transition">
                             📋 Inventory
                         </Link>
+                        {admin && (
+                            <Link href="/kategori" style={{ backgroundColor: '#353535' }} className="text-sm px-4 py-2 hover:opacity-80 text-white rounded-lg whitespace-nowrap font-medium transition">
+                                🏷️ Kategori
+                            </Link>
+                        )}
                     </div>
                 </div>
             </nav>
